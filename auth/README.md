@@ -1,3 +1,3 @@
 # auth
 
-Contains Gmail and Google Forms client authentication tokens.
+Contains client authentication tokens.
