@@ -11,8 +11,8 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 SCOPES = ["https://www.googleapis.com/auth/gmail.compose"]
-CLIENT_CREDS = "auth/email/client_creds.json"
-ACCESS_TOKEN = "auth/email/access_token.json"
+CLIENT_CREDS = "../auth/email/client_creds.json"
+ACCESS_TOKEN = "../auth/email/access_token.json"
 
 def send_email():
     """Send email"""
