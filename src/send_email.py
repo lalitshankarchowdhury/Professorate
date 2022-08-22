@@ -58,7 +58,7 @@ if __name__ == "__main__":
     prev_time_in_mins = 0
     while True:
         time_in_mins = time.time() // 60
-        if time_in_mins % 5 == 0 and time_in_mins != prev_time_in_mins:
+        if time_in_mins != prev_time_in_mins and time_in_mins % 5 == 0:
             send_email()
             prev_time_in_mins = time_in_mins
         time.sleep(1)
