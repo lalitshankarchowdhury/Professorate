@@ -1,5 +1,3 @@
 .venv/
-email_credentials.json
-email_token.json
-forms_credentials.json
-forms_token.json
+auth/email/
+auth/forms/
