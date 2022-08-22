@@ -14,12 +14,10 @@ from googleapiclient.errors import HttpError
 SCOPES = ["https://www.googleapis.com/auth/gmail.compose"]
 CLIENT_CREDS = "../auth/email/client_creds.json"
 ACCESS_TOKEN = "../auth/email/access_token.json"
-creds = None
 
 
 def auth_client():
     """Authorize client"""
-    global creds
     if os.path.exists(ACCESS_TOKEN):
         creds = Credentials.from_authorized_user_file(ACCESS_TOKEN, SCOPES)
     if not creds or not creds.valid:
@@ -30,9 +28,10 @@ def auth_client():
             creds = flow.run_local_server(port=0)
         with open(ACCESS_TOKEN, "w") as token:
             token.write(creds.to_json())
+    return creds
 
 
-def send_email():
+def send_email(creds):
     """Send email"""
     try:
         service = build("gmail", "v1", credentials=creds)
@@ -54,11 +53,11 @@ def send_email():
 
 
 if __name__ == "__main__":
-    auth_client()
+    creds = auth_client()
     prev_time_in_mins = 0
     while True:
         time_in_mins = time.time() // 60
         if time_in_mins != prev_time_in_mins and time_in_mins % 5 == 0:
-            send_email()
+            send_email(creds)
             prev_time_in_mins = time_in_mins
         time.sleep(1)
