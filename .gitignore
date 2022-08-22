@@ -1,2 +1,5 @@
 .venv/
-client_secrets.json
+email_credentials.json
+email_token.json
+forms_credentials.json
+forms_token.json

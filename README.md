@@ -1,2 +1,3 @@
 # Professorate
-Rate professors anonymously
+
+Rate professors anonymously.

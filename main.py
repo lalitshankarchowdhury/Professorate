@@ -1,72 +1,57 @@
 from __future__ import print_function
 
-from apiclient import discovery
-from httplib2 import Http
-from oauth2client import client, file, tools
+import os.path
 
-SCOPES = "https://www.googleapis.com/auth/forms.body"
-DISCOVERY_DOC = "https://forms.googleapis.com/$discovery/rest?version=v1"
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 
-store = file.Storage("token.json")
-creds = None
-if not creds or creds.invalid:
-    flow = client.flow_from_clientsecrets("client_secrets.json", SCOPES)
-    creds = tools.run_flow(flow, store)
+# If modifying these scopes, delete the file email_token.json.
+SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 
-form_service = discovery.build(
-    "forms",
-    "v1",
-    http=creds.authorize(Http()),
-    discoveryServiceUrl=DISCOVERY_DOC,
-    static_discovery=False,
-)
 
-# Request body for creating a form
-NEW_FORM = {
-    "info": {
-        "title": "Quickstart form",
-    }
-}
+def main():
+    """Shows basic usage of the Gmail API.
+    Lists the user's Gmail labels.
+    """
+    creds = None
+    # The file email_token.json stores the user's access and refresh tokens, and is
+    # created automatically when the authorization flow completes for the first
+    # time.
+    if os.path.exists("email_token.json"):
+        creds = Credentials.from_authorized_user_file("email_token.json", SCOPES)
+    # If there are no (valid) credentials available, let the user log in.
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                "email_credentials.json", SCOPES
+            )
+            creds = flow.run_local_server(port=0)
+        # Save the credentials for the next run
+        with open("email_token.json", "w") as token:
+            token.write(creds.to_json())
 
-# Request body to add a multiple-choice question
-NEW_QUESTION = {
-    "requests": [
-        {
-            "createItem": {
-                "item": {
-                    "title": "In what year did the United States land a mission on the moon?",
-                    "questionItem": {
-                        "question": {
-                            "required": True,
-                            "choiceQuestion": {
-                                "type": "RADIO",
-                                "options": [
-                                    {"value": "1965"},
-                                    {"value": "1967"},
-                                    {"value": "1969"},
-                                    {"value": "1971"},
-                                ],
-                                "shuffle": True,
-                            },
-                        }
-                    },
-                },
-                "location": {"index": 0},
-            }
-        }
-    ]
-}
+    try:
+        # Call the Gmail API
+        service = build("gmail", "v1", credentials=creds)
+        results = service.users().labels().list(userId="me").execute()
+        labels = results.get("labels", [])
 
-# Creates the initial form
-result = form_service.forms().create(body=NEW_FORM).execute()
+        if not labels:
+            print("No labels found.")
+            return
+        print("Labels:")
+        for label in labels:
+            print(label["name"])
 
-# Adds the question to the form
-question_setting = (
-    form_service.forms()
-    .batchUpdate(formId=result["formId"], body=NEW_QUESTION)
-    .execute()
-)
+    except HttpError as error:
+        # TODO(developer) - Handle errors from gmail API.
+        print(f"An error occurred: {error}")
 
-# Prints the result to show the question has been added
-get_result = form_service.forms().get(formId=result["formId"]).execute()
-print(get_result)
+
+if __name__ == "__main__":
+    main()
